@@ -1,10 +1,26 @@
+import { db } from '../db';
+import { pushNotificationsTable } from '../db/schema';
 import { type GetUserNotificationsInput, type PushNotification } from '../schema';
+import { eq, desc } from 'drizzle-orm';
 
 export const getUserNotifications = async (input: GetUserNotificationsInput): Promise<PushNotification[]> => {
-  // This is a placeholder declaration! Real code should be implemented here.
-  // The goal of this handler is fetching notifications for a specific user.
-  // Should support pagination with limit and offset.
-  // Should return notifications ordered by created_at descending (newest first).
-  // Should allow filtering by read/unread status.
-  return [];
+  try {
+    // Apply pagination defaults
+    const limit = input.limit || 20;
+    const offset = input.offset || 0;
+    
+    // Build complete query in one chain to maintain type inference
+    const results = await db.select()
+      .from(pushNotificationsTable)
+      .where(eq(pushNotificationsTable.user_id, input.user_id))
+      .orderBy(desc(pushNotificationsTable.created_at))
+      .limit(limit)
+      .offset(offset)
+      .execute();
+
+    return results;
+  } catch (error) {
+    console.error('Get user notifications failed:', error);
+    throw error;
+  }
 };

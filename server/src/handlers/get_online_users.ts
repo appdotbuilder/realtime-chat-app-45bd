@@ -1,9 +1,19 @@
+import { db } from '../db';
+import { usersTable } from '../db/schema';
+import { eq } from 'drizzle-orm';
 import { type User } from '../schema';
 
 export const getOnlineUsers = async (): Promise<User[]> => {
-  // This is a placeholder declaration! Real code should be implemented here.
-  // The goal of this handler is fetching all users with 'online' status.
-  // Should be used for displaying online user lists in the chat application.
-  // Should update user status based on real-time connection status.
-  return [];
+  try {
+    // Query users with 'online' status
+    const results = await db.select()
+      .from(usersTable)
+      .where(eq(usersTable.status, 'online'))
+      .execute();
+
+    return results;
+  } catch (error) {
+    console.error('Failed to fetch online users:', error);
+    throw error;
+  }
 };

@@ -1,18 +1,27 @@
+import { db } from '../db';
+import { pushNotificationsTable } from '../db/schema';
 import { type MarkNotificationReadInput, type PushNotification } from '../schema';
+import { eq } from 'drizzle-orm';
 
 export const markNotificationRead = async (input: MarkNotificationReadInput): Promise<PushNotification> => {
-  // This is a placeholder declaration! Real code should be implemented here.
-  // The goal of this handler is marking a notification as read.
-  // Should validate that the notification belongs to the requesting user.
-  // Should update the is_read field to true.
-  return Promise.resolve({
-    id: input.id,
-    user_id: 0, // Placeholder
-    title: 'Placeholder title',
-    body: 'Placeholder body',
-    type: 'new_message',
-    data: null,
-    is_read: true,
-    created_at: new Date()
-  } as PushNotification);
+  try {
+    // Update the notification to mark it as read
+    const result = await db.update(pushNotificationsTable)
+      .set({
+        is_read: true
+      })
+      .where(eq(pushNotificationsTable.id, input.id))
+      .returning()
+      .execute();
+
+    // Check if notification was found and updated
+    if (result.length === 0) {
+      throw new Error(`Notification with id ${input.id} not found`);
+    }
+
+    return result[0];
+  } catch (error) {
+    console.error('Failed to mark notification as read:', error);
+    throw error;
+  }
 };
